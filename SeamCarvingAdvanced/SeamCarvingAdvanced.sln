@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeamCarvingAdvanced", "SeamCarvingAdvanced.csproj", "{9C8A2C82-060C-42B5-8416-794D5F2F4A80}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeamCarvingAdvanced.GUI", "..\SeamCarvingAdvanced.GUI\SeamCarvingAdvanced.GUI.csproj", "{773A1A58-C633-43C9-816D-D40BC55AD16B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9C8A2C82-060C-42B5-8416-794D5F2F4A80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C8A2C82-060C-42B5-8416-794D5F2F4A80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C8A2C82-060C-42B5-8416-794D5F2F4A80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C8A2C82-060C-42B5-8416-794D5F2F4A80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{773A1A58-C633-43C9-816D-D40BC55AD16B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{773A1A58-C633-43C9-816D-D40BC55AD16B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{773A1A58-C633-43C9-816D-D40BC55AD16B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{773A1A58-C633-43C9-816D-D40BC55AD16B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
