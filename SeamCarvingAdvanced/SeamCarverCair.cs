@@ -13,16 +13,26 @@ namespace SeamCarvingAdvanced
 {
 	public class SeamCarverCair : SeamCarver
 	{
+		private const int LockAwaitingMs = 50;
+
 		public string CairAppFileName
 		{
 			get;
 			set;
 		}
 
+		public SeamCarverCair(EnergyFuncType energyFuncType, bool hd, bool forwardEnergy, bool parallelization,
+			string cairAppFileName)
+			: base(energyFuncType, hd, forwardEnergy, parallelization)
+		{
+			CairAppFileName = cairAppFileName;
+		}
+
 		public override Bitmap Generate(System.Drawing.Bitmap bitmap, int newWidth, int newHeight)
 		{
-			string originFileName = "seam_carving_cair_orig.bmp";
-			string resultFileName = "seam_carving_cair_result.bmp";
+			string fileName = Path.GetRandomFileName();
+			string originFileName = fileName + ".bmp";
+			string resultFileName = fileName + "_result.bmp";
 
 			bitmap.Save(originFileName, ImageFormat.Bmp);
 			string inputFileName = Path.GetFullPath(originFileName);
@@ -51,7 +61,7 @@ namespace SeamCarvingAdvanced
 
 			int threadCount = Parallelization ? Math.Min(4, Environment.ProcessorCount) : 1;
 			string parameters = string.Format("-I \"{0}\" -O \"{1}\" -X {2} -Y {3} -R {4} -C {5} -E {6} -T {7}",
-				inputFileName, outputFileName, newWidth, newHeight, Hd ? 6 : 0, energyFuncTypeInt, EnergyBackward ? 0 : 1, threadCount);
+				inputFileName, outputFileName, newWidth, newHeight, Hd ? 6 : 0, energyFuncTypeInt, ForwardEnergy ? 1 : 0, threadCount);
 
 			ProcessStartInfo startInfo = new ProcessStartInfo(CairAppFileName, parameters);
 			startInfo.UseShellExecute = false;
@@ -61,23 +71,24 @@ namespace SeamCarvingAdvanced
 			proc.WaitForExit();
 
 			Bitmap result = null;
+			FileInfo outputFileInfo;
 			using (MemoryStream stream = new MemoryStream())
 			{
-				var outputFileInfo = new FileInfo(outputFileName);
+				outputFileInfo = new FileInfo(outputFileName);
 				while (IsFileLocked(outputFileInfo))
-					Thread.Sleep(100);
+					Thread.Sleep(LockAwaitingMs);
 				using (FileStream fs = File.OpenRead(outputFileName))
 				{
 					fs.CopyTo(stream);
 				}
-				outputFileInfo.Delete();
 				result = new Bitmap(stream);
 			}
 
-			var inputFileInfo = new FileInfo(inputFileName);
-			while (IsFileLocked(inputFileInfo))
-				Thread.Sleep(100);
-			inputFileInfo.Delete();
+			File.Delete(inputFileName);
+			outputFileInfo = new FileInfo(outputFileName);
+			while (IsFileLocked(outputFileInfo))
+				Thread.Sleep(LockAwaitingMs);
+			outputFileInfo.Delete();
 
 			return result;
 		}

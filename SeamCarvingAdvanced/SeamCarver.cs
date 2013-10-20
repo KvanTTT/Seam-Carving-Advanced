@@ -21,7 +21,7 @@ namespace SeamCarvingAdvanced
 			set;
 		}
 
-		public bool EnergyBackward
+		public bool ForwardEnergy
 		{
 			get;
 			set;
@@ -31,6 +31,14 @@ namespace SeamCarvingAdvanced
 		{
 			get;
 			set;
+		}
+
+		public SeamCarver(EnergyFuncType energyFuncType, bool hd, bool forwardEnergy, bool parallelization)
+		{
+			EnergyFuncType = energyFuncType;
+			Hd = hd;
+			ForwardEnergy = forwardEnergy;
+			Parallelization = parallelization;
 		}
 
 		public abstract Bitmap Generate(Bitmap bitmap, int newWidth, int newHeight);
