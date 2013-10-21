@@ -281,21 +281,30 @@ namespace SeamCarvingAdvanced
 						int ind = iw + j;
 						int ind1 = ind - initWidth;
 						int result = energyDiff[ind1];
+						if (ForwardEnergy)
+							result += ForwardCostUX(energy, initWidth, initHeight, j, i);
 						int energyDiffElem;
 						if (j > 0)
 						{
 							energyDiffElem = energyDiff[ind1 - 1];
+							if (ForwardEnergy)
+								energyDiffElem += ForwardCostLX(energy, initWidth, initHeight, j, i);
 							if (energyDiffElem < result)
 								result = energyDiffElem;
 						}
 						if (j < width - 1)
 						{
 							energyDiffElem = energyDiff[ind1 + 1];
+							if (ForwardEnergy)
+								energyDiffElem += ForwardCostRX(energy, initWidth, initHeight, j, i);
 							if (energyDiffElem < result)
 								result = energyDiffElem;
 						}
 
-						energyDiff[ind] = result + energy[ind];
+						if (!ForwardEnergy)
+							energyDiff[ind] = result + energy[ind];
+						else
+							energyDiff[ind] = result;
 					}
 				}
 			}
@@ -311,21 +320,30 @@ namespace SeamCarvingAdvanced
 						int ind = j * initWidth + i;
 						int ind1 = ind - 1;
 						int result = energyDiff[ind1];
+						if (ForwardEnergy)
+							result += ForwardCostUY(energy, initWidth, initHeight, i, j);
 						int energyDiffElem;
 						if (j > 0)
 						{
 							energyDiffElem = energyDiff[ind1 - initWidth];
+							if (ForwardEnergy)
+								energyDiffElem += ForwardCostLY(energy, initWidth, initHeight, i, j);
 							if (energyDiffElem < result)
 								result = energyDiffElem;
 						}
 						if (j < height - 1)
 						{
 							energyDiffElem = energyDiff[ind1 + initWidth];
+							if (ForwardEnergy)
+								energyDiffElem += ForwardCostRY(energy, initWidth, initHeight, i, j);
 							if (energyDiffElem < result)
 								result = energyDiffElem;
 						}
 
-						energyDiff[ind] = result + energy[ind];
+						if (!ForwardEnergy)
+							energyDiff[ind] = result + energy[ind];
+						else
+							energyDiff[ind] = result;
 					}
 				}
 			}
@@ -422,7 +440,45 @@ namespace SeamCarvingAdvanced
 				}
 			}
 		}
-		
+
+		#region Forward Energy
+
+		private int ForwardCostLX(byte* energy, int width, int height, int x, int y)
+		{
+			return Math.Abs(energy[y * width + (x + 1)] - energy[y * width + (x - 1)])
+				+ Math.Abs(energy[(y - 1) * width + x] - energy[y * width + (x - 1)]);
+		}
+
+		private int ForwardCostUX(byte* energy, int width, int height, int x, int y)
+		{
+			return Math.Abs(energy[y * width + (x + 1)] - energy[y * width + (x - 1)]);
+		}
+
+		private int ForwardCostRX(byte* energy, int width, int height, int x, int y)
+		{
+			return Math.Abs(energy[y * width + (x + 1)] - energy[y * width + (x - 1)])
+				+ Math.Abs(energy[(y - 1) * width + x] - energy[y * width + (x + 1)]);
+		}
+
+		private int ForwardCostLY(byte* energy, int width, int height, int x, int y)
+		{
+			return Math.Abs(energy[(y + 1) * width + x] - energy[(y - 1) * width + x])
+				+ Math.Abs(energy[y * width + (x - 1)] - energy[(y - 1) * width + x]);
+		}
+
+		private int ForwardCostUY(byte* energy, int width, int height, int x, int y)
+		{
+			return Math.Abs(energy[(y + 1) * width + x] - energy[(y - 1) * width + x]);
+		}
+
+		private int ForwardCostRY(byte* energy, int width, int height, int x, int y)
+		{
+			return Math.Abs(energy[(y + 1) * width + x] - energy[(y - 1) * width + x])
+				+ Math.Abs(energy[y * width + (x - 1)] - energy[(y + 1) * width + x]);
+		}
+
+		#endregion
+
 		#endregion
 
 		#region Image Conversation

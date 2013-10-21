@@ -52,9 +52,9 @@ namespace SeamCarvingAdvanced.GUI
 				if (!string.IsNullOrEmpty(tbInputImagePath.Text))
 					InputBitmap = new Bitmap(tbInputImagePath.Text);
 
-				tbWidthRatio_TextChanged(sender, e);
+				/*tbWidthRatio_TextChanged(sender, e);
 				tbHeightRatio_TextChanged(sender, e);
-				tbNeighbourCountRatio_TextChanged(sender, e);
+				tbNeighbourCountRatio_TextChanged(sender, e);*/
 			}
 			catch
 			{
