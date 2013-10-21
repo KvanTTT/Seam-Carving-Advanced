@@ -406,8 +406,9 @@
 			// openImageDialog
 			// 
 			this.openImageDialog.FileName = "openImageDialog";
-			this.openImageDialog.Filter = "\"JPEG Files (*.jpeg)|*.jpeg|PNG Files (*.png)|*.png|JPG Files (*.jpg)|*.jpg|GIF F" +
-    "iles (*.gif)|*.gif\"";
+			this.openImageDialog.Filter = "All supported formats|*.jpeg;*.jpg;*.png;*.bmp;*.gif|JPEG Files (*.jpeg,*.jpg)|*." +
+    "jpeg;*.jpg|PNG Files (*.png)|*.png|BMP Files (*.bmp)|*.bmp|GIF Files (*.gif)|*.g" +
+    "if";
 			// 
 			// btnProcess
 			// 

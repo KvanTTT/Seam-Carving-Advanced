@@ -36,23 +36,29 @@ namespace SeamCarvingAdvanced.GUI
 
 		private void frmMain_Load(object sender, EventArgs e)
 		{
-			tbInputImagePath.Text = Settings.Default.InputImagePath;
-			cmbSeamCarvingMethod.SelectedIndex = Settings.Default.SeamCarvingMethod;
-			tbWidthRatio.Text = Settings.Default.WidthRatio.ToString(DoubleFormatString);
-			tbHeightRatio.Text = Settings.Default.HeightRatio.ToString(DoubleFormatString);
-			cmbEnergyFuncType.SelectedIndex = Settings.Default.EnergyFuncType;
-			cbForwardEnergy.Checked = Settings.Default.ForwardEnergy;
-			cbHd.Checked = Settings.Default.Hd;
-			cbParallel.Checked = Settings.Default.Parallel;
-			tbCairAppPath.Text = Settings.Default.CairAppPath;
-			tbNeighbourCountRatio.Text = Settings.Default.NeighbourCountRatio.ToString(DoubleFormatString);
-		
-			if (!string.IsNullOrEmpty(tbInputImagePath.Text))
-				InputBitmap = new Bitmap(tbInputImagePath.Text);
+			try
+			{
+				tbInputImagePath.Text = Settings.Default.InputImagePath;
+				cmbSeamCarvingMethod.SelectedIndex = Settings.Default.SeamCarvingMethod;
+				tbWidthRatio.Text = Settings.Default.WidthRatio.ToString(DoubleFormatString);
+				tbHeightRatio.Text = Settings.Default.HeightRatio.ToString(DoubleFormatString);
+				cmbEnergyFuncType.SelectedIndex = Settings.Default.EnergyFuncType;
+				cbForwardEnergy.Checked = Settings.Default.ForwardEnergy;
+				cbHd.Checked = Settings.Default.Hd;
+				cbParallel.Checked = Settings.Default.Parallel;
+				tbCairAppPath.Text = Settings.Default.CairAppPath;
+				tbNeighbourCountRatio.Text = Settings.Default.NeighbourCountRatio.ToString(DoubleFormatString);
 
-			tbWidthRatio_TextChanged(sender, e);
-			tbHeightRatio_TextChanged(sender, e);
-			tbNeighbourCountRatio_TextChanged(sender, e);
+				if (!string.IsNullOrEmpty(tbInputImagePath.Text))
+					InputBitmap = new Bitmap(tbInputImagePath.Text);
+
+				tbWidthRatio_TextChanged(sender, e);
+				tbHeightRatio_TextChanged(sender, e);
+				tbNeighbourCountRatio_TextChanged(sender, e);
+			}
+			catch
+			{
+			}
 		}
 
 		private void frmMain_FormClosed(object sender, FormClosedEventArgs e)
@@ -89,20 +95,25 @@ namespace SeamCarvingAdvanced.GUI
 			double widthRatio = double.Parse(tbWidthRatio.Text);
 			double heightRatio = double.Parse(tbHeightRatio.Text);
 
+			int newWidth = (int)Math.Round(widthRatio * InputBitmap.Width);
+			int newHeight = (int)Math.Round(heightRatio * InputBitmap.Height);
 			var stopwatch = new Stopwatch();
 			switch (seamCarvingMethod)
 			{
 				case SeamCarvingMethod.CAIR:
 					Thread.Sleep(100);
 					stopwatch.Start();
-					SeamCarverCair carver = new SeamCarverCair(energyFuncType, cbHd.Checked, cbForwardEnergy.Checked, cbParallel.Checked, tbCairAppPath.Text);
-					resultBitmap = carver.Generate(InputBitmap,
-						(int)Math.Round(widthRatio * InputBitmap.Width), (int)Math.Round(heightRatio * InputBitmap.Height));
+					SeamCarverCair cairCarver = new SeamCarverCair(energyFuncType, cbHd.Checked, cbForwardEnergy.Checked, cbParallel.Checked, tbCairAppPath.Text);
+					resultBitmap = cairCarver.Generate(InputBitmap,newWidth, newHeight);
 					stopwatch.Stop();
 					break;
 				default:
 				case SeamCarvingMethod.Standart:
-
+					stopwatch.Start();
+					SeamCarverStandart standrtCarver = new SeamCarverStandart(energyFuncType, cbHd.Checked, cbForwardEnergy.Checked, cbParallel.Checked,
+						double.Parse(tbNeighbourCountRatio.Text));
+					resultBitmap = standrtCarver.Generate(InputBitmap, newWidth, newHeight);
+					stopwatch.Stop();
 					break;
 				case SeamCarvingMethod.GPU:
 

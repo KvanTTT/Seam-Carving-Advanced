@@ -8,12 +8,10 @@ namespace SeamCarvingAdvanced
 {
 	public enum EnergyFuncType
 	{
-		Diff = 0,
+		Prewitt = 0,
 		Sobel = 1,
-		Prewitt = 2,
-		Canny = 3,
-		V1 = 4,
-		VSquare = 5,
-		Laplacian = 6
+		V1 = 2,
+		VSquare = 3,
+		Laplacian = 4
 	}
 }
