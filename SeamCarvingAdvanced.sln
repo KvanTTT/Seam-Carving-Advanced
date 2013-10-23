@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeamCarvingAdvanced", "SeamCarvingAdvanced.csproj", "{9C8A2C82-060C-42B5-8416-794D5F2F4A80}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeamCarvingAdvanced", "SeamCarvingAdvanced\SeamCarvingAdvanced.csproj", "{9C8A2C82-060C-42B5-8416-794D5F2F4A80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeamCarvingAdvanced.GUI", "..\SeamCarvingAdvanced.GUI\SeamCarvingAdvanced.GUI.csproj", "{773A1A58-C633-43C9-816D-D40BC55AD16B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeamCarvingAdvanced.GUI", "SeamCarvingAdvanced.GUI\SeamCarvingAdvanced.GUI.csproj", "{773A1A58-C633-43C9-816D-D40BC55AD16B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,8 +22,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
