@@ -440,8 +440,7 @@ namespace SeamCarvingAdvanced
 							(i + 1) * w2 / _threadCount + yMin + boundaryMinY, x));
 					}
 					else
-						CalculateEnergyDiffPart(energy, energyDiff, width, height, xDir,
-							yMin + boundaryMinY, yMax - boundaryMaxY + 1, x);
+						CalculateEnergyDiffPart(energy, energyDiff, width, height, xDir, yMin + boundaryMinY, yMax - boundaryMaxY + 1, x);
 
 					if (shrinked[0] != int.MinValue)
 					{
@@ -475,36 +474,36 @@ namespace SeamCarvingAdvanced
 					int ind = ind_y + x; // x; y
 					int ind_ym1 = ind - _initWidth; // x; y - 1
 					int result = energyDiff[ind_ym1];
-					int val_ym1 = 0;
-					int costUx = 0;
-					if (ForwardEnergy)
-					{
-						val_ym1 = energy[ind_ym1];
-						costUx = Abs(energy[ind_y + (x + 1)] - energy[ind_y + (x - 1)]);
-						result += costUx;
-					}
 					int energyDiffElem;
-					if (x > 0)
-					{
-						energyDiffElem = energyDiff[ind_ym1 - 1];
-						if (ForwardEnergy)
-							energyDiffElem += costUx + Abs(val_ym1 - energy[ind_y + (x - 1)]);
-						if (energyDiffElem < result)
-							result = energyDiffElem;
-					}
-					if (x < width - 1)
-					{
-						energyDiffElem = energyDiff[ind_ym1 + 1];
-						if (ForwardEnergy)
-							energyDiffElem += costUx + Abs(val_ym1 - energy[ind_y + (x + 1)]);
-						if (energyDiffElem < result)
-							result = energyDiffElem;
-					}
 
 					if (!ForwardEnergy)
+					{
+						energyDiffElem = energyDiff[ind_ym1 - 1];
+						if (energyDiffElem < result)
+							result = energyDiffElem;
+
+						energyDiffElem = energyDiff[ind_ym1 + 1];
+						if (energyDiffElem < result)
+							result = energyDiffElem;
+
 						energyDiff[ind] = result + energy[ind];
+					}
 					else
+					{
+						int val_ym1 = energy[ind_ym1];
+						int costUx = Abs(energy[ind_y + (x + 1)] - energy[ind_y + (x - 1)]);
+						result += energyDiff[ind_ym1] + costUx;
+
+						energyDiffElem = energyDiff[ind_ym1 - 1] + costUx + Abs(val_ym1 - energy[ind_y + (x - 1)]);
+						if (energyDiffElem < result)
+							result = energyDiffElem;
+
+						energyDiffElem = energyDiff[ind_ym1 + 1] + costUx + Abs(val_ym1 - energy[ind_y + (x + 1)]);
+						if (energyDiffElem < result)
+							result = energyDiffElem;
+
 						energyDiff[ind] = result;
+					}
 				}
 			}
 			else
@@ -514,36 +513,36 @@ namespace SeamCarvingAdvanced
 					int ind = y * _initWidth + s;
 					int ind_xm1 = ind - 1;
 					int result = energyDiff[ind_xm1];
-					int val_xm1 = 0;
-					int costUy = 0;
-					if (ForwardEnergy)
-					{
-						val_xm1 = energy[ind_xm1];
-						costUy = Abs(energy[(y + 1) * _initWidth + s] - energy[(y - 1) * _initWidth + s]);
-						result += costUy;
-					}
 					int energyDiffElem;
-					if (y > 0)
-					{
-						energyDiffElem = energyDiff[ind_xm1 - _initWidth];
-						if (ForwardEnergy)
-							energyDiffElem += costUy + Abs(val_xm1 - energy[(y - 1) * _initWidth + s]);
-						if (energyDiffElem < result)
-							result = energyDiffElem;
-					}
-					if (y < height - 1)
-					{
-						energyDiffElem = energyDiff[ind_xm1 + _initWidth];
-						if (ForwardEnergy)
-							energyDiffElem += costUy + Abs(val_xm1 - energy[(y + 1) * _initWidth + s]);
-						if (energyDiffElem < result)
-							result = energyDiffElem;
-					}
 
 					if (!ForwardEnergy)
+					{
+						energyDiffElem = energyDiff[ind_xm1 - _initWidth];
+						if (energyDiffElem < result)
+							result = energyDiffElem;
+
+						energyDiffElem = energyDiff[ind_xm1 + _initWidth];
+						if (energyDiffElem < result)
+							result = energyDiffElem;
+
 						energyDiff[ind] = result + energy[ind];
+					}
 					else
+					{
+						int val_xm1 = energy[ind_xm1];
+						int costUy = Abs(energy[(y + 1) * _initWidth + s] - energy[(y - 1) * _initWidth + s]);
+						result += costUy;
+
+						energyDiffElem = energyDiff[ind_xm1 - _initWidth] + costUy + Abs(val_xm1 - energy[(y - 1) * _initWidth + s]);
+						if (energyDiffElem < result)
+							result = energyDiffElem;
+
+						energyDiffElem = energyDiff[ind_xm1 + _initWidth] + costUy + Abs(val_xm1 - energy[(y + 1) * _initWidth + s]);
+						if (energyDiffElem < result)
+							result = energyDiffElem;
+
 						energyDiff[ind] = result;
+					}
 				}
 			}
 		}
