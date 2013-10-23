@@ -38,7 +38,7 @@ namespace SeamCarvingAdvanced
 		{
 			NeighbourCountRatio = neighbourCountRatio;
 		}
-		
+
 		public override Bitmap Generate(Bitmap bitmap, int newWidth, int newHeight)
 		{
 			Bitmap result;
@@ -78,8 +78,8 @@ namespace SeamCarvingAdvanced
 									int xMin;
 									CalculateEnergyDiff2(energy, energyDiff, shrinked, width, height, true, out xMin);
 									FindShrinkedPixels(energyDiff, shrinked, width, height, true, xMin);
-									width--;
 									DecreaseBitmap(colored, grayscaled, energy, shrinked, width, height, true);
+									width--;
 								}
 								while (width > newWidth);
 							}
@@ -92,8 +92,8 @@ namespace SeamCarvingAdvanced
 									int yMin;
 									CalculateEnergyDiff2(energy, energyDiff, shrinked, width, height, false, out yMin);
 									FindShrinkedPixels(energyDiff, shrinked, width, height, false, yMin);
-									height--;
 									DecreaseBitmap(colored, grayscaled, energy, shrinked, width, height, false);
+									height--;
 								}
 								while (height > newHeight);
 							}
@@ -107,6 +107,7 @@ namespace SeamCarvingAdvanced
 									int xSum, ySum;
 									if (width != newWidth)
 									{
+										shrinked[0] = int.MinValue;
 										int xMin;
 										xSum = CalculateEnergyDiff2(energy, energyDiff, shrinked, width, height, true, out xMin);
 										FindShrinkedPixels(energyDiff, shrinked, width, height, true, xMin);
@@ -116,6 +117,7 @@ namespace SeamCarvingAdvanced
 
 									if (height != newHeight)
 									{
+										shrinked[0] = int.MinValue;
 										int yMin;
 										ySum = CalculateEnergyDiff2(energy, energyDiff, shrinked, width, height, false, out yMin);
 										FindShrinkedPixels(energyDiff, shrinked, width, height, false, yMin);
@@ -125,13 +127,13 @@ namespace SeamCarvingAdvanced
 
 									if (xSum <= ySum)
 									{
-										width--;
 										DecreaseBitmap(colored, grayscaled, energy, shrinked, width, height, true);
+										width--;
 									}
 									else
 									{
-										height--;
 										DecreaseBitmap(colored, grayscaled, energy, shrinked, width, height, false);
+										height--;
 									}
 								}
 								while (width > newWidth || height > newHeight);
@@ -179,7 +181,7 @@ namespace SeamCarvingAdvanced
 			grayscaledPtr = grayscaled + width * startY + startX;
 			energyPtr = energy + width * startY + startX;
 
-			int max = 0;
+			byte max = 0;
 			if (Parallelization)
 			{
 				Parallel.For(0, _threadCount, new ParallelOptions { MaxDegreeOfParallelism = _threadCount }, y =>
@@ -194,31 +196,31 @@ namespace SeamCarvingAdvanced
 			grayscaledPtr = grayscaled;
 			energyPtr = energy;
 
-			int g;
+			byte g;
 			for (int x = 0; x < width; x++)
 			{
-				g = CalculateEnergyAt(grayscaled, width, height, x, 0);
+				g = ConvolvePixelSafe(grayscaled, width, height, x, 0);
 				if (g > max)
 					max = g;
-				energyPtr[0 * width + x] = (byte)g;
+				energyPtr[0 * width + x] = g;
 
-				g = CalculateEnergyAt(grayscaled, width, height, x, height - 1);
+				g = ConvolvePixelSafe(grayscaled, width, height, x, height - 1);
 				if (g > max)
 					max = g;
-				energyPtr[(height - 1) * width + x] = (byte)g;
+				energyPtr[(height - 1) * width + x] = g;
 			}
 
 			for (int y = startY; y < stopY; y++)
 			{
-				g = CalculateEnergyAt(grayscaled, width, height, 0, y);
+				g = ConvolvePixelSafe(grayscaled, width, height, 0, y);
 				if (g > max)
 					max = g;
-				energyPtr[y * width + 0] = (byte)g;
+				energyPtr[y * width + 0] = g;
 
-				g = CalculateEnergyAt(grayscaled, width, height, width - 1, y);
+				g = ConvolvePixelSafe(grayscaled, width, height, width - 1, y);
 				if (g > max)
 					max = g;
-				energyPtr[y * width + (width - 1)] = (byte)g;
+				energyPtr[y * width + (width - 1)] = g;
 			}
 
 			if (max != 255)
@@ -236,56 +238,28 @@ namespace SeamCarvingAdvanced
 		}
 
 		private void CalculateEnergyPart(byte* grayscaled, byte* energy, int width, int height,
-			int startX, int stopX, int startY, int stopY, ref int max)
+			int startX, int stopX, int startY, int stopY, ref byte max)
 		{
 			int srcOffset = 2 + (_initWidth - width);
 			int dstOffset = 2 + (_initWidth - width);
 
-			int coef1 = 1, coef2 = 1;
-			if (EnergyFuncType == EnergyFuncType.Sobel)
-			{
-				coef1 = 2;
-				coef2 = 2;
-			}
-
-			byte* grayscaledPtr = grayscaled + width * startY + startX;
+			int grayscaledInd = width * startY + startX;
 			byte* energyPtr = energy + width * startY + startX;
-			
-			int g = 0;
-			int localMax = max;
+
+			byte g = 0;
+			byte localMax = max;
 			for (int y = startY; y < stopY; y++)
 			{
-				for (int x = startX; x < stopX; x++, grayscaledPtr++, energyPtr++)
+				for (int x = startX; x < stopX; x++, grayscaledInd++, energyPtr++)
 				{
-					if (EnergyFuncType == EnergyFuncType.Prewitt || EnergyFuncType == EnergyFuncType.Sobel)
-					{
-						g = Math.Min(255,
-								Math.Abs(grayscaledPtr[-width - 1] + grayscaledPtr[-width + 1]
-										- grayscaledPtr[width - 1] - grayscaledPtr[width + 1]
-										+ coef1 * (grayscaledPtr[-width] - grayscaledPtr[width]))
-							  + Math.Abs(grayscaledPtr[-width + 1] + grayscaledPtr[width + 1]
-										- grayscaledPtr[-width - 1] - grayscaledPtr[width - 1]
-										+ coef2 * (grayscaledPtr[1] - grayscaledPtr[-1])));
-					}
-					else if (EnergyFuncType == EnergyFuncType.VSquare || EnergyFuncType == EnergyFuncType.V1)
-					{
-						g = grayscaledPtr[-width + 1] + grayscaledPtr[1] + grayscaledPtr[+width + 1] -
-							grayscaledPtr[-width - 1] - grayscaledPtr[-1] - grayscaledPtr[-width - 1];
-						if (EnergyFuncType == EnergyFuncType.VSquare)
-							g *= g;
-					}
-					else if (EnergyFuncType == EnergyFuncType.Laplacian)
-					{
-						g = grayscaledPtr[1] + grayscaledPtr[-1] + grayscaledPtr[width] + grayscaledPtr[-width] -
-							4 * *grayscaledPtr;
-					}
+					g = ConvolvePixel(grayscaled, grayscaledInd);
 
-					*energyPtr = (byte)g;
+					*energyPtr = g;
 					if (g > localMax)
 						localMax = g;
 				}
 
-				grayscaledPtr += srcOffset;
+				grayscaledInd += srcOffset;
 				energyPtr += dstOffset;
 			}
 
@@ -294,68 +268,6 @@ namespace SeamCarvingAdvanced
 				if (localMax > max)
 					max = localMax;
 			}
-		}
-
-		private int CalculateEnergyAt(byte* grayscaled, int width, int height, int x, int y)
-		{
-			int result = 0;
-			if (EnergyFuncType == EnergyFuncType.Prewitt || EnergyFuncType == EnergyFuncType.Sobel)
-			{
-				int coef1 = 1;
-				int coef2 = 1;
-				if (EnergyFuncType == EnergyFuncType.Sobel)
-				{
-					coef1 = 2;
-					coef2 = 2;
-				}
-
-				result = Math.Min(255,
-						Math.Abs(GetGrayscaledAt(grayscaled, width, height, x - 1, y - 1) +
-								 GetGrayscaledAt(grayscaled, width, height, x + 1, y - 1) -
-								 GetGrayscaledAt(grayscaled, width, height, x - 1, y + 1) -
-								 GetGrayscaledAt(grayscaled, width, height, x + 1, y + 1)
-								+ coef1 * (
-								GetGrayscaledAt(grayscaled, width, height, x, y - 1) -
-								GetGrayscaledAt(grayscaled, width, height, x, y + 1)))
-
-					  + Math.Abs(GetGrayscaledAt(grayscaled, width, height, x + 1, y - 1) +
-								 GetGrayscaledAt(grayscaled, width, height, x + 1, y + 1) -
-								 GetGrayscaledAt(grayscaled, width, height, x - 1, y - 1) -
-								 GetGrayscaledAt(grayscaled, width, height, x - 1, y + 1)
-								+ coef2 * (
-								GetGrayscaledAt(grayscaled, width, height, x + 1, y) -
-								GetGrayscaledAt(grayscaled, width, height, x - 1, y))));
-			}
-			else if (EnergyFuncType == EnergyFuncType.VSquare || EnergyFuncType == EnergyFuncType.V1)
-			{
-				result = 
-					GetGrayscaledAt(grayscaled, width, height, x + 1, y - 1) + 
-					GetGrayscaledAt(grayscaled, width, height, x + 1, y    ) +
-					GetGrayscaledAt(grayscaled, width, height, x + 1, y + 1) -
-					GetGrayscaledAt(grayscaled, width, height, x - 1, y - 1) -
-					GetGrayscaledAt(grayscaled, width, height, x - 1, y    ) - 
-					GetGrayscaledAt(grayscaled, width, height, x - 1, y + 1);
-				if (EnergyFuncType == EnergyFuncType.VSquare)
-					result *= result;
-			}
-			else if (EnergyFuncType == EnergyFuncType.Laplacian)
-			{
-				result = GetGrayscaledAt(grayscaled, width, height, x + 1, y) +
-						 GetGrayscaledAt(grayscaled, width, height, x - 1, y) +
-						 GetGrayscaledAt(grayscaled, width, height, x, y + 1) +
-						 GetGrayscaledAt(grayscaled, width, height, x, y - 1) -
-							4 * *grayscaled;
-			}
-
-			return result;
-		}
-
-		private byte GetGrayscaledAt(byte* grayscaled, int width, int height, int x, int y)
-		{
-			if (x < 0 || x >= width || y < 0 || y >= height)
-				return 0;
-			else
-				return grayscaled[y * width + x];
 		}
 
 		private void CalculateEnergyDiff(byte* energy, int* energyDiff, int width, int height, bool xDir)
@@ -386,7 +298,7 @@ namespace SeamCarvingAdvanced
 				{
 					if (Parallelization)
 					{
-						Parallel.For(0, _threadCount, new ParallelOptions { MaxDegreeOfParallelism = _threadCount }, i => 
+						Parallel.For(0, _threadCount, new ParallelOptions { MaxDegreeOfParallelism = _threadCount }, i =>
 							CalculateEnergyDiffPart(energy, energyDiff, width, height, xDir,
 							i * height / _threadCount, (i + 1) * height / _threadCount, x));
 					}
@@ -395,7 +307,7 @@ namespace SeamCarvingAdvanced
 				}
 			}
 		}
-		
+
 		private int CalculateEnergyDiff2(byte* energy, int* energyDiff, int* shrinked, int width, int height, bool xDir, out int sMin)
 		{
 			int w1 = width - 1;
@@ -673,36 +585,69 @@ namespace SeamCarvingAdvanced
 			}
 		}
 
-		private int CalculateShrinkedSum(int* shrinked, int* energyDiff, int width, int height, bool xDir)
-		{
-			int result = 0;
-			if (xDir)
-			{
-				for (int i = 0; i < height; i++)
-					result += energyDiff[i * width + shrinked[i]];
-			}
-			else
-			{
-				for (int i = 0; i < width; i++)
-					result += energyDiff[shrinked[i] * width + i];
-			}
-			return result;
-		}
-
 		private void DecreaseBitmap(byte* colored, byte* grayscaled, byte* energy, int* cropPixels, int width, int height, bool xDir)
 		{
-			int s = xDir ? height : width;
+			int constSize = xDir ? width : height;
+			int second = xDir ? height : width;
 			if (Parallelization)
 			{
-				Parallel.For(0, _threadCount, new ParallelOptions{ MaxDegreeOfParallelism = _threadCount }, i =>
-							DecreaseBitmapPart(colored, grayscaled, energy, cropPixels, width, height, xDir,
-							i * s / _threadCount, (i + 1) * s / _threadCount));
+				Parallel.For(0, _threadCount, new ParallelOptions { MaxDegreeOfParallelism = _threadCount }, i =>
+							DecreaseBitmapPart(colored, grayscaled, energy, cropPixels, xDir, constSize, i * second / _threadCount, (i + 1) * second / _threadCount));
 			}
 			else
-				DecreaseBitmapPart(colored, grayscaled, energy, cropPixels, width, height, xDir, 0, s);
+				DecreaseBitmapPart(colored, grayscaled, energy, cropPixels, xDir, constSize, 0, second);
+
+			if (xDir)
+			{
+				int newWidth = width - 1;
+				int newHeight = height;
+
+				for (int y = 0; y < height; y++)
+				{
+					int cropPixelX = cropPixels[y];
+					bool safety = false;
+
+					if (y <= 4 || y >= newHeight - 5 || cropPixelX <= 4 || cropPixelX >= newWidth - 5)
+						safety = true;
+
+					for (int x = cropPixelX - 3; x < cropPixelX + 3; x++)
+					{
+						int xLimited = Limit(x, 0, newWidth - 1);
+						int ind = y * _initWidth + xLimited;
+						if (!safety)
+							energy[ind] = ConvolvePixel(grayscaled, ind);
+						else
+							energy[ind] = ConvolvePixelSafe(grayscaled, newWidth, newHeight, xLimited, y);
+					}
+				}
+			}
+			else
+			{
+				int newWidth = width;
+				int newHeight = height - 1;
+
+				for (int x = 0; x < width; x++)
+				{
+					int cropPixelY = cropPixels[x];
+					bool safety = false;
+
+					if (x <= 4 || x >= newWidth - 5 || cropPixelY <= 4 || cropPixelY >= newHeight - 5)
+						safety = true;
+
+					for (int y = cropPixelY - 3; y < cropPixelY + 3; y++)
+					{
+						int yLimited = Limit(y, 0, newHeight - 1);
+						int ind = yLimited * _initWidth + x;
+						if (!safety)
+							energy[ind] = ConvolvePixel(grayscaled, ind);
+						else
+							energy[ind] = ConvolvePixelSafe(grayscaled, newWidth, newHeight, x, yLimited);
+					}
+				}
+			}
 		}
 
-		private void DecreaseBitmapPart(byte* colored, byte* grayscaled, byte* energy, int* cropPixels, int width, int height, bool xDir, int start, int stop)
+		private void DecreaseBitmapPart(byte* colored, byte* grayscaled, byte* energy, int* cropPixels, bool xDir, int size, int start, int stop)
 		{
 			if (xDir)
 			{
@@ -713,7 +658,28 @@ namespace SeamCarvingAdvanced
 					byte* coloredPtr = colored + t * ColorOffset;
 					byte* energyPtr = energy + t;
 					byte* grayscaledPtr = grayscaled + t;
-					for (int j = cropPixelY; j < width; j++)
+
+					byte r = coloredPtr[RedInc];
+					byte g = coloredPtr[GreenInc];
+					byte b = coloredPtr[BlueInc];
+
+					if (cropPixelY != size - 1)
+					{
+						coloredPtr[RedInc + ColorOffset] = (byte)((r + coloredPtr[RedInc + ColorOffset]) / 2);
+						coloredPtr[GreenInc + ColorOffset] = (byte)((g + coloredPtr[GreenInc + ColorOffset]) / 2);
+						coloredPtr[BlueInc + ColorOffset] = (byte)((b + coloredPtr[BlueInc + ColorOffset]) / 2);
+						grayscaledPtr[1] = ColoredToGrayscaled(coloredPtr + ColorOffset);
+					}
+
+					if (cropPixelY != 0)
+					{
+						coloredPtr[RedInc - ColorOffset] = (byte)((r + coloredPtr[RedInc - ColorOffset]) / 2);
+						coloredPtr[GreenInc - ColorOffset] = (byte)((g + coloredPtr[GreenInc - ColorOffset]) / 2);
+						coloredPtr[BlueInc - ColorOffset] = (byte)((b + coloredPtr[BlueInc - ColorOffset]) / 2);
+						grayscaledPtr[-1] = ColoredToGrayscaled(coloredPtr - ColorOffset);
+					}
+
+					for (int x = cropPixelY; x < size - 1; x++)
 					{
 						coloredPtr[RedInc] = coloredPtr[ColorOffset + RedInc];
 						coloredPtr[GreenInc] = coloredPtr[ColorOffset + GreenInc];
@@ -729,6 +695,7 @@ namespace SeamCarvingAdvanced
 			}
 			else
 			{
+				int offset = ColorOffset * _initWidth;
 				for (int x = start; x < stop; x++)
 				{
 					int cropPixelX = cropPixels[x];
@@ -736,8 +703,28 @@ namespace SeamCarvingAdvanced
 					byte* coloredPtr = colored + t * ColorOffset;
 					byte* energyPtr = energy + t;
 					byte* grayscaledPtr = grayscaled + t;
-					int offset = ColorOffset * _initWidth;
-					for (int j = cropPixelX; j < height; j++)
+
+					byte r = coloredPtr[RedInc];
+					byte g = coloredPtr[GreenInc];
+					byte b = coloredPtr[BlueInc];
+
+					if (cropPixelX != size - 1)
+					{
+						coloredPtr[RedInc + offset] = (byte)((r + coloredPtr[RedInc + offset]) / 2);
+						coloredPtr[GreenInc + offset] = (byte)((g + coloredPtr[GreenInc + offset]) / 2);
+						coloredPtr[BlueInc + offset] = (byte)((b + coloredPtr[BlueInc + offset]) / 2);
+						grayscaledPtr[1] = ColoredToGrayscaled(coloredPtr + offset);
+					}
+
+					if (cropPixelX != 0)
+					{
+						coloredPtr[RedInc - offset] = (byte)((r + coloredPtr[RedInc - offset]) / 2);
+						coloredPtr[GreenInc - offset] = (byte)((g + coloredPtr[GreenInc - offset]) / 2);
+						coloredPtr[BlueInc - offset] = (byte)((b + coloredPtr[BlueInc - offset]) / 2);
+						grayscaledPtr[-1] = ColoredToGrayscaled(coloredPtr - offset);
+					}
+
+					for (int j = cropPixelX; j < size - 1; j++)
 					{
 						coloredPtr[RedInc] = coloredPtr[offset + RedInc];
 						coloredPtr[GreenInc] = coloredPtr[offset + GreenInc];
@@ -747,15 +734,125 @@ namespace SeamCarvingAdvanced
 
 						coloredPtr += offset;
 						energyPtr += _initWidth;
+						grayscaledPtr += _initWidth;
 					}
 				}
 			}
+		}
+
+		#region Misc
+
+		private byte ConvolvePixel(byte* grayscaled, int ind)
+		{
+			byte* grayscaledPtr = grayscaled + ind;
+			int result = 0;
+			if (EnergyFuncType == EnergyFuncType.Prewitt || EnergyFuncType == EnergyFuncType.Sobel)
+			{
+				int coef = 1;
+				if (EnergyFuncType == EnergyFuncType.Sobel)
+					coef = 2;
+
+				result = Math.Min(255,
+						Math.Abs(grayscaledPtr[-_initWidth - 1] + grayscaledPtr[-_initWidth + 1]
+								- grayscaledPtr[_initWidth - 1] - grayscaledPtr[_initWidth + 1]
+								+ coef * (grayscaledPtr[-_initWidth] - grayscaledPtr[_initWidth]))
+					  + Math.Abs(grayscaledPtr[-_initWidth + 1] + grayscaledPtr[_initWidth + 1]
+								- grayscaledPtr[-_initWidth - 1] - grayscaledPtr[_initWidth - 1]
+								+ coef * (grayscaledPtr[1] - grayscaledPtr[-1])));
+			}
+			else if (EnergyFuncType == EnergyFuncType.VSquare || EnergyFuncType == EnergyFuncType.V1)
+			{
+				result = grayscaledPtr[-_initWidth + 1] + grayscaledPtr[1] + grayscaledPtr[+_initWidth + 1] -
+					grayscaledPtr[-_initWidth - 1] - grayscaledPtr[-1] - grayscaledPtr[-_initWidth - 1];
+				if (EnergyFuncType == EnergyFuncType.VSquare)
+					result *= result;
+				else
+					result = Abs(result);
+			}
+			else if (EnergyFuncType == EnergyFuncType.Laplacian)
+			{
+				result = Abs(grayscaledPtr[1] + grayscaledPtr[-1] + grayscaledPtr[_initWidth] + grayscaledPtr[-_initWidth] -
+					4 * *grayscaledPtr);
+			}
+
+			return (byte)Limit(result, 0, 255);
+		}
+
+		private byte ConvolvePixelSafe(byte* grayscaled, int width, int height, int x, int y)
+		{
+			int result = 0;
+			if (EnergyFuncType == EnergyFuncType.Prewitt || EnergyFuncType == EnergyFuncType.Sobel)
+			{
+				int coef = 1;
+				if (EnergyFuncType == EnergyFuncType.Sobel)
+					coef = 2;
+
+				result = Math.Min(255,
+						Math.Abs(GetGrayscaledAt(grayscaled, width, height, x - 1, y - 1) +
+								 GetGrayscaledAt(grayscaled, width, height, x + 1, y - 1) -
+								 GetGrayscaledAt(grayscaled, width, height, x - 1, y + 1) -
+								 GetGrayscaledAt(grayscaled, width, height, x + 1, y + 1)
+								+ coef * (
+								GetGrayscaledAt(grayscaled, width, height, x, y - 1) -
+								GetGrayscaledAt(grayscaled, width, height, x, y + 1)))
+
+					  + Math.Abs(GetGrayscaledAt(grayscaled, width, height, x + 1, y - 1) +
+								 GetGrayscaledAt(grayscaled, width, height, x + 1, y + 1) -
+								 GetGrayscaledAt(grayscaled, width, height, x - 1, y - 1) -
+								 GetGrayscaledAt(grayscaled, width, height, x - 1, y + 1)
+								+ coef * (
+								GetGrayscaledAt(grayscaled, width, height, x + 1, y) -
+								GetGrayscaledAt(grayscaled, width, height, x - 1, y))));
+			}
+			else if (EnergyFuncType == EnergyFuncType.VSquare || EnergyFuncType == EnergyFuncType.V1)
+			{
+				result =
+					GetGrayscaledAt(grayscaled, width, height, x + 1, y - 1) +
+					GetGrayscaledAt(grayscaled, width, height, x + 1, y) +
+					GetGrayscaledAt(grayscaled, width, height, x + 1, y + 1) -
+					GetGrayscaledAt(grayscaled, width, height, x - 1, y - 1) -
+					GetGrayscaledAt(grayscaled, width, height, x - 1, y) -
+					GetGrayscaledAt(grayscaled, width, height, x - 1, y + 1);
+				if (EnergyFuncType == EnergyFuncType.VSquare)
+					result *= result;
+				else
+					result = Abs(result);
+			}
+			else if (EnergyFuncType == EnergyFuncType.Laplacian)
+			{
+				result = Abs(GetGrayscaledAt(grayscaled, width, height, x + 1, y) +
+						 GetGrayscaledAt(grayscaled, width, height, x - 1, y) +
+						 GetGrayscaledAt(grayscaled, width, height, x, y + 1) +
+						 GetGrayscaledAt(grayscaled, width, height, x, y - 1) -
+							4 * *grayscaled);
+			}
+
+			return (byte)Limit(result, 0, 255);
+		}
+
+		private byte GetGrayscaledAt(byte* grayscaled, int width, int height, int x, int y)
+		{
+			if (x < 0 || x >= width || y < 0 || y >= height)
+				return 0;
+			else
+				return grayscaled[y * _initWidth + x];
+		}
+
+		private static int Limit(int a, int min, int max)
+		{
+			if (a < min)
+				return min;
+			else if (a > max)
+				return max;
+			return a;
 		}
 
 		private static int Abs(int a)
 		{
 			return a >= 0 ? a : -a;
 		}
+
+		#endregion
 
 		#endregion
 
@@ -781,10 +878,16 @@ namespace SeamCarvingAdvanced
 			byte* dest = grayscaled;
 			for (int i = 0; i < length; i++)
 			{
-				*dest = (byte)Math.Round(source[RedInc] * 0.2125 + source[GreenInc] * 0.7154 + source[BlueInc] * 0.0721);
+				//*dest = (byte)Math.Round(source[RedInc] * 0.2125 + source[GreenInc] * 0.7154 + source[BlueInc] * 0.0721);
+				*dest = ColoredToGrayscaled(source);
 				source += ColorOffset;
 				dest++;
 			}
+		}
+
+		private byte ColoredToGrayscaled(byte* colored)
+		{
+			return (byte)((299 * colored[RedInc] + 587 * colored[GreenInc] + 114 * colored[BlueInc]) / 1000);
 		}
 
 		private Bitmap GrayscaledToBitmap(byte* grayscaled, int width, int height)
