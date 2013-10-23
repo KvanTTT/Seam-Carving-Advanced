@@ -141,6 +141,7 @@
 			// 
 			this.tbHeight.Location = new System.Drawing.Point(213, 72);
 			this.tbHeight.Name = "tbHeight";
+			this.tbHeight.ReadOnly = true;
 			this.tbHeight.RightToLeft = System.Windows.Forms.RightToLeft.No;
 			this.tbHeight.Size = new System.Drawing.Size(60, 20);
 			this.tbHeight.TabIndex = 58;
@@ -152,6 +153,7 @@
 			// 
 			this.tbWidth.Location = new System.Drawing.Point(213, 46);
 			this.tbWidth.Name = "tbWidth";
+			this.tbWidth.ReadOnly = true;
 			this.tbWidth.RightToLeft = System.Windows.Forms.RightToLeft.No;
 			this.tbWidth.Size = new System.Drawing.Size(60, 20);
 			this.tbWidth.TabIndex = 57;

@@ -140,8 +140,8 @@ namespace SeamCarvingAdvanced.GUI
 
 		private void tbWidth_TextChanged(object sender, EventArgs e)
 		{
-			if (InputBitmap != null)
-				tbWidthRatio.Text = (int.Parse(tbWidth.Text) / (double)InputBitmap.Width).ToString(DoubleFormatString);
+			/*if (InputBitmap != null)
+				tbWidthRatio.Text = (int.Parse(tbWidth.Text) / (double)InputBitmap.Width).ToString(DoubleFormatString);*/
 		}
 
 		private void tbHeightRatio_TextChanged(object sender, EventArgs e)
@@ -160,8 +160,8 @@ namespace SeamCarvingAdvanced.GUI
 
 		private void tbHeight_TextChanged(object sender, EventArgs e)
 		{
-			if (InputBitmap != null)
-				tbHeightRatio.Text = (int.Parse(tbHeight.Text) / (double)InputBitmap.Height).ToString(DoubleFormatString);
+			/*if (InputBitmap != null)
+				tbHeightRatio.Text = (int.Parse(tbHeight.Text) / (double)InputBitmap.Height).ToString(DoubleFormatString);*/
 		}
 
 		private void tbNeighbourCountRatio_TextChanged(object sender, EventArgs e)
