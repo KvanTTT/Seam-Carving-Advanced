@@ -14,10 +14,10 @@ namespace SeamCarvingAdvanced
 	{
 		#region Constants
 
-		private const int ColorOffset = 4;
-		private const int RedInc = 2;
-		private const int GreenInc = 1;
-		private const int BlueInc = 0;
+		protected const int ColorOffset = 4;
+		protected const int RedInc = 2;
+		protected const int GreenInc = 1;
+		protected const int BlueInc = 0;
 
 		private const int EnergyDiffPathDec = 3;
 		private const int EnergyDiffPathInc = 2;
@@ -74,7 +74,7 @@ namespace SeamCarvingAdvanced
 								shrinked[0] = int.MinValue;
 								do
 								{
-									//CalculateEnergyDiff(energy, energyDiff, width, height, true);
+									//CalculateEnergyDiff(energy, energyDiff, width, height, true, out xMin);
 									int xMin;
 									CalculateEnergyDiff2(energy, energyDiff, shrinked, width, height, true, out xMin);
 									FindShrinkedPixels(energyDiff, shrinked, width, height, true, xMin);
@@ -88,7 +88,7 @@ namespace SeamCarvingAdvanced
 								shrinked[0] = int.MinValue;
 								do
 								{
-									//CalculateEnergyDiff(energy, energyDiff, width, height, false);
+									//CalculateEnergyDiff(energy, energyDiff, width, height, false, out yMin);
 									int yMin;
 									CalculateEnergyDiff2(energy, energyDiff, shrinked, width, height, false, out yMin);
 									FindShrinkedPixels(energyDiff, shrinked, width, height, false, yMin);
@@ -158,14 +158,14 @@ namespace SeamCarvingAdvanced
 
 		#endregion
 
-		#region Private
+		#region Protected
 
-		private int _threadCount = Environment.ProcessorCount;
-		private object _lockObj = new object();
-		private int _initWidth;
-		private int _initHeight;
+		protected int _threadCount = Environment.ProcessorCount;
+		protected object _lockObj = new object();
+		protected int _initWidth;
+		protected int _initHeight;
 
-		private void CalculateEnergy(byte* grayscaled, byte* energy, int width, int height)
+		protected void CalculateEnergy(byte* grayscaled, byte* energy, int width, int height)
 		{
 			byte* grayscaledPtr;
 			byte* energyPtr;
@@ -237,7 +237,7 @@ namespace SeamCarvingAdvanced
 			}
 		}
 
-		private void CalculateEnergyPart(byte* grayscaled, byte* energy, int width, int height,
+		protected void CalculateEnergyPart(byte* grayscaled, byte* energy, int width, int height,
 			int startX, int stopX, int startY, int stopY, ref byte max)
 		{
 			int srcOffset = 2 + (_initWidth - width);
@@ -270,7 +270,7 @@ namespace SeamCarvingAdvanced
 			}
 		}
 
-		private void CalculateEnergyDiff(byte* energy, int* energyDiff, int width, int height, bool xDir)
+		protected virtual int CalculateEnergyDiff(byte* energy, int* energyDiff, int width, int height, bool xDir, out int sMin)
 		{
 			if (xDir)
 			{
@@ -288,6 +288,18 @@ namespace SeamCarvingAdvanced
 					else
 						CalculateEnergyDiffPart(energy, energyDiff, width, height, xDir, 0, width, y);
 				}
+
+				int h1 = height - 1;
+				sMin = 0;
+				int sMinValue = energyDiff[h1 * _initWidth + sMin];
+				for (int x = 1; x < width; x++)
+					if (energyDiff[h1 * _initWidth + x] < sMinValue)
+					{
+						sMin = x;
+						sMinValue = energyDiff[h1 * _initWidth + sMin];
+					}
+
+				return sMinValue;
 			}
 			else
 			{
@@ -305,10 +317,22 @@ namespace SeamCarvingAdvanced
 					else
 						CalculateEnergyDiffPart(energy, energyDiff, width, height, xDir, 0, height, x);
 				}
+
+				int w1 = width - 1;
+				sMin = 0;
+				int sMinValue = energyDiff[sMin * _initWidth + w1];
+				for (int y = 1; y < height; y++)
+					if (energyDiff[y * _initWidth + w1] < sMinValue)
+					{
+						sMin = y;
+						sMinValue = energyDiff[sMin * _initWidth + w1];
+					}
+
+				return sMinValue;
 			}
 		}
 
-		private int CalculateEnergyDiff2(byte* energy, int* energyDiff, int* shrinked, int width, int height, bool xDir, out int sMin)
+		protected int CalculateEnergyDiff2(byte* energy, int* energyDiff, int* shrinked, int width, int height, bool xDir, out int sMin)
 		{
 			int w1 = width - 1;
 			int h1 = height - 1;
@@ -354,7 +378,7 @@ namespace SeamCarvingAdvanced
 					minXEnergy = energyDiff[y * _initWidth + xMin];
 					maxXEnergy = energyDiff[y * _initWidth + xMax];
 
-					if (Parallelization)
+					/*if (Parallelization)
 					{
 						int w2 = (xMax - boundaryMaxX + 1) - (xMin + boundaryMinX);
 						Parallel.For(0, _threadCount,
@@ -364,7 +388,7 @@ namespace SeamCarvingAdvanced
 							i * w2 / _threadCount + xMin + boundaryMinX,
 							(i + 1) * w2 / _threadCount + xMin + boundaryMinX, y));
 					}
-					else
+					else*/
 						CalculateEnergyDiffPart(energy, energyDiff, width, height, xDir, xMin + boundaryMinX, xMax - boundaryMaxX + 1, y);
 
 					if (shrinked[0] != int.MinValue)
@@ -429,7 +453,7 @@ namespace SeamCarvingAdvanced
 					minYEnergy = energyDiff[yMin * _initWidth + x];
 					maxYEnergy = energyDiff[yMax * _initWidth + x];
 
-					if (Parallelization)
+					/*if (Parallelization)
 					{
 						int w2 = (yMax - boundaryMaxY + 1) - (yMin + boundaryMinY);
 						Parallel.For(0, _threadCount,
@@ -439,7 +463,7 @@ namespace SeamCarvingAdvanced
 							i * w2 / _threadCount + yMin + boundaryMinY,
 							(i + 1) * w2 / _threadCount + yMin + boundaryMinY, x));
 					}
-					else
+					else*/
 						CalculateEnergyDiffPart(energy, energyDiff, width, height, xDir, yMin + boundaryMinY, yMax - boundaryMaxY + 1, x);
 
 					if (shrinked[0] != int.MinValue)
@@ -464,7 +488,7 @@ namespace SeamCarvingAdvanced
 			}
 		}
 
-		private void CalculateEnergyDiffPart(byte* energy, int* energyDiff, int width, int height, bool xDir, int start, int stop, int s)
+		protected void CalculateEnergyDiffPart(byte* energy, int* energyDiff, int width, int height, bool xDir, int start, int stop, int s)
 		{
 			if (xDir)
 			{
@@ -547,7 +571,7 @@ namespace SeamCarvingAdvanced
 			}
 		}
 
-		private void FindShrinkedPixels(int* energyDiff, int* shrinked, int width, int height, bool xDir, int sMin)
+		protected void FindShrinkedPixels(int* energyDiff, int* shrinked, int width, int height, bool xDir, int sMin)
 		{
 			if (xDir)
 			{
@@ -584,7 +608,7 @@ namespace SeamCarvingAdvanced
 			}
 		}
 
-		private void DecreaseBitmap(byte* colored, byte* grayscaled, byte* energy, int* cropPixels, int width, int height, bool xDir)
+		protected void DecreaseBitmap(byte* colored, byte* grayscaled, byte* energy, int* cropPixels, int width, int height, bool xDir)
 		{
 			int constSize = xDir ? width : height;
 			int second = xDir ? height : width;
@@ -646,7 +670,7 @@ namespace SeamCarvingAdvanced
 			}
 		}
 
-		private void DecreaseBitmapPart(byte* colored, byte* grayscaled, byte* energy, int* cropPixels, bool xDir, int size, int start, int stop)
+		protected void DecreaseBitmapPart(byte* colored, byte* grayscaled, byte* energy, int* cropPixels, bool xDir, int size, int start, int stop)
 		{
 			if (xDir)
 			{
@@ -741,7 +765,7 @@ namespace SeamCarvingAdvanced
 
 		#region Misc
 
-		private byte ConvolvePixel(byte* grayscaled, int ind)
+		protected byte ConvolvePixel(byte* grayscaled, int ind)
 		{
 			byte* grayscaledPtr = grayscaled + ind;
 			int result = 0;
@@ -751,13 +775,12 @@ namespace SeamCarvingAdvanced
 				if (EnergyFuncType == EnergyFuncType.Sobel)
 					coef = 2;
 
-				result = Math.Min(255,
-						Math.Abs(grayscaledPtr[-_initWidth - 1] + grayscaledPtr[-_initWidth + 1]
-								- grayscaledPtr[_initWidth - 1] - grayscaledPtr[_initWidth + 1]
-								+ coef * (grayscaledPtr[-_initWidth] - grayscaledPtr[_initWidth]))
-					  + Math.Abs(grayscaledPtr[-_initWidth + 1] + grayscaledPtr[_initWidth + 1]
+				result = Math.Abs(grayscaledPtr[-_initWidth + 1] + grayscaledPtr[_initWidth + 1]
 								- grayscaledPtr[-_initWidth - 1] - grayscaledPtr[_initWidth - 1]
-								+ coef * (grayscaledPtr[1] - grayscaledPtr[-1])));
+								+ coef * (grayscaledPtr[1] - grayscaledPtr[-1])) +
+						 Math.Abs(grayscaledPtr[-_initWidth - 1] + grayscaledPtr[-_initWidth + 1]
+								- grayscaledPtr[_initWidth - 1] - grayscaledPtr[_initWidth + 1]
+								+ coef * (grayscaledPtr[-_initWidth] - grayscaledPtr[_initWidth]));
 			}
 			else if (EnergyFuncType == EnergyFuncType.VSquare || EnergyFuncType == EnergyFuncType.V1)
 			{
@@ -777,7 +800,7 @@ namespace SeamCarvingAdvanced
 			return (byte)Limit(result, 0, 255);
 		}
 
-		private byte ConvolvePixelSafe(byte* grayscaled, int width, int height, int x, int y)
+		protected byte ConvolvePixelSafe(byte* grayscaled, int width, int height, int x, int y)
 		{
 			int result = 0;
 			if (EnergyFuncType == EnergyFuncType.Prewitt || EnergyFuncType == EnergyFuncType.Sobel)
@@ -829,7 +852,7 @@ namespace SeamCarvingAdvanced
 			return (byte)Limit(result, 0, 255);
 		}
 
-		private byte GetGrayscaledAt(byte* grayscaled, int width, int height, int x, int y)
+		protected byte GetGrayscaledAt(byte* grayscaled, int width, int height, int x, int y)
 		{
 			if (x < 0 || x >= width || y < 0 || y >= height)
 				return 0;
@@ -837,7 +860,7 @@ namespace SeamCarvingAdvanced
 				return grayscaled[y * _initWidth + x];
 		}
 
-		private static int Limit(int a, int min, int max)
+		protected static int Limit(int a, int min, int max)
 		{
 			if (a < min)
 				return min;
@@ -846,7 +869,7 @@ namespace SeamCarvingAdvanced
 			return a;
 		}
 
-		private static int Abs(int a)
+		protected static int Abs(int a)
 		{
 			return a >= 0 ? a : -a;
 		}
@@ -857,7 +880,7 @@ namespace SeamCarvingAdvanced
 
 		#region Image Conversation
 
-		private void BitmapToColored(byte* bitmap, byte* colored, int length)
+		protected void BitmapToColored(byte* bitmap, byte* colored, int length)
 		{
 			byte* coloredPtr = colored;
 			byte* bitmapPtr = bitmap;
@@ -871,7 +894,7 @@ namespace SeamCarvingAdvanced
 			}
 		}
 
-		private void ColoredToGrayscaled(byte* colored, byte* grayscaled, int length)
+		protected void ColoredToGrayscaled(byte* colored, byte* grayscaled, int length)
 		{
 			byte* source = colored;
 			byte* dest = grayscaled;
@@ -884,12 +907,12 @@ namespace SeamCarvingAdvanced
 			}
 		}
 
-		private byte ColoredToGrayscaled(byte* colored)
+		protected byte ColoredToGrayscaled(byte* colored)
 		{
 			return (byte)((299 * colored[RedInc] + 587 * colored[GreenInc] + 114 * colored[BlueInc]) / 1000);
 		}
 
-		private Bitmap GrayscaledToBitmap(byte* grayscaled, int width, int height)
+		protected Bitmap GrayscaledToBitmap(byte* grayscaled, int width, int height)
 		{
 			Bitmap result = new Bitmap(width, height);
 			BitmapData bitmapData = null;
@@ -923,7 +946,7 @@ namespace SeamCarvingAdvanced
 			return result;
 		}
 
-		private Bitmap ColoredToBitmap(byte* colored, int width, int height)
+		protected Bitmap ColoredToBitmap(byte* colored, int width, int height)
 		{
 			Bitmap result = new Bitmap(width, height);
 			BitmapData bitmapData = null;
