@@ -70,7 +70,7 @@ namespace SeamCarvingAdvanced.GUI
 			Settings.Default.EnergyFuncType = cmbEnergyFuncType.SelectedIndex;
 			Settings.Default.ForwardEnergy = cbForwardEnergy.Checked;
 			Settings.Default.Hd = cbHd.Checked;
-			Settings.Default.Parallel = Settings.Default.Parallel;
+			Settings.Default.Parallel = cbParallel.Checked;
 			Settings.Default.CairAppPath = tbCairAppPath.Text;
 			Settings.Default.NeighbourCountRatio = double.Parse(tbNeighbourCountRatio.Text);
 			Settings.Default.Save();
