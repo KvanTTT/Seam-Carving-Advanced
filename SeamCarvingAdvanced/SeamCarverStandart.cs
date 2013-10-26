@@ -22,10 +22,8 @@ namespace SeamCarvingAdvanced
 		private const int EnergyDiffPathDec = 3;
 		private const int EnergyDiffPathInc = 2;
 
-		private const int BlockSize = 16;
-		private const int Offset = 1;
-
-		private const int MaxEnergyDiff = 16777216;
+		protected const int Offset = 1;
+		public const int MaxEnergyDiff = 16777216;
 
 		#endregion
 
@@ -37,11 +35,18 @@ namespace SeamCarvingAdvanced
 			set;
 		}
 
+		public int BlockSize
+		{
+			get;
+			set;
+		}
+
 		public SeamCarverStandart(EnergyFuncType energyFuncType, bool hd, bool forwardEnergy, bool parallelization,
-			double neighbourCountRatio)
+			double neighbourCountRatio, int blockSize)
 			: base(energyFuncType, hd, forwardEnergy, parallelization)
 		{
 			NeighbourCountRatio = neighbourCountRatio;
+			BlockSize = blockSize;
 		}
 
 		public override Bitmap Generate(Bitmap bitmap, int newWidth, int newHeight)
@@ -76,21 +81,19 @@ namespace SeamCarvingAdvanced
 			}
 
 			byte[] grayscaleArray = new byte[length];
-			byte[] energyArray = new byte[length];
-			int[] energyDiffArray = new int[length];
-			if (!Parallelization)
+			//if (!Parallelization)
 			{
 				energyArray = new byte[length];
 				energyDiffArray = new int[length];
 			}
-			else
+			/*else
 			{
 				_initExtWidth = (_initWidth + (BlockSize - 1)) / BlockSize * BlockSize + 2 * (BlockSize + Offset);
 				_initExtHeight = (_initHeight + (BlockSize - 1)) / BlockSize * BlockSize + 2 * (BlockSize + Offset);
 				int energyArrayLength = _initExtWidth * _initExtHeight;
 				energyArray = new byte[length]; // TODO: Fix it with extendedLength: //energyArray = new byte[energyArrayLength];
 				energyDiffArray = new int[energyArrayLength];
-			}
+			}*/
 
 			int[] shrinkedArray = new int[Math.Max(_initWidth, _initHeight)];
 
@@ -99,7 +102,6 @@ namespace SeamCarvingAdvanced
 
 			fixed (byte* colored = coloredArray, grayscaled = grayscaleArray, energy = energyArray)
 			{
-
 				ColoredToGrayscaled(colored, grayscaled, length);
 				CalculateEnergy(grayscaled, energy, width, height);
 
@@ -113,8 +115,9 @@ namespace SeamCarvingAdvanced
 							do
 							{
 								int xMin;
-								CalculateEnergyDiff(energy, energyDiff, width, height, true, out xMin);
-								//CalculateEnergyDiff2(energy, energyDiff, shrinked, width, height, true, out xMin);
+								//CalculateEnergyDiff(energy, energyDiff, width, height, true, out xMin);
+								CalculateEnergyDiff2(energy, energyDiff, shrinked, width, height, true, out xMin);
+								//CalculateEnergyDiffParallel(energy, energyDiff, width, height, true, out xMin);
 								FindShrinkedPixels(energyDiff, shrinked, width, height, true, xMin);
 								DecreaseBitmap(colored, grayscaled, energy, shrinked, width, height, true);
 								width--;
@@ -127,8 +130,8 @@ namespace SeamCarvingAdvanced
 							do
 							{
 								int yMin;
-								CalculateEnergyDiff(energy, energyDiff, width, height, false, out yMin);
-								//CalculateEnergyDiff2(energy, energyDiff, shrinked, width, height, false, out yMin);
+								//CalculateEnergyDiff(energy, energyDiff, width, height, false, out yMin);
+								CalculateEnergyDiff2(energy, energyDiff, shrinked, width, height, false, out yMin);
 								FindShrinkedPixels(energyDiff, shrinked, width, height, false, yMin);
 								DecreaseBitmap(colored, grayscaled, energy, shrinked, width, height, false);
 								height--;
@@ -194,6 +197,8 @@ namespace SeamCarvingAdvanced
 		protected int _initHeight;
 		protected int _initExtWidth;
 		protected int _initExtHeight;
+		protected byte[] energyArray;
+		protected int[] energyDiffArray;
 
 		protected void CalculateEnergy(byte* grayscaled, byte* energy, int width, int height)
 		{
@@ -400,47 +405,7 @@ namespace SeamCarvingAdvanced
 				}
 			}
 
-			int scale;
-			int offset;
-			if (!Parallelization)
-			{
-				scale = _initWidth;
-				offset = 0;
-			}
-			else
-			{
-				scale = _initExtWidth;
-				offset = (BlockSize + Offset) * _initExtWidth + BlockSize + Offset;
-			}
-
-			if (xDir)
-			{
-				int h1 = height - 1;
-				sMin = 0;
-				int sMinValue = energyDiff[h1 * scale + sMin + offset];
-				for (int x = 1; x < width; x++)
-					if (energyDiff[h1 * scale + x + offset] < sMinValue)
-					{
-						sMin = x;
-						sMinValue = energyDiff[h1 * scale + sMin + offset];
-					}
-
-				return sMinValue;
-			}
-			else
-			{
-				int w1 = width - 1;
-				sMin = 0;
-				int sMinValue = energyDiff[sMin * scale + w1 + offset];
-				for (int y = 1; y < height; y++)
-					if (energyDiff[y * scale + w1 + offset] < sMinValue)
-					{
-						sMin = y;
-						sMinValue = energyDiff[sMin * scale + w1 + offset];
-					}
-
-				return sMinValue;
-			}
+			return GetMinIndAndValue(energyDiff, width, height, xDir, out sMin);
 		}
 
 		protected int CalculateEnergyDiff2(byte* energy, int* energyDiff, int* shrinked, int width, int height, bool xDir, out int sMin)
@@ -499,17 +464,6 @@ namespace SeamCarvingAdvanced
 							xMax--;
 					}
 				}
-
-				sMin = 0;
-				int sMinValue = energyDiff[h1 * _initWidth + sMin];
-				for (int x = 1; x < width; x++)
-					if (energyDiff[h1 * _initWidth + x] < sMinValue)
-					{
-						sMin = x;
-						sMinValue = energyDiff[h1 * _initWidth + sMin];
-					}
-
-				return sMinValue;
 			}
 			else
 			{
@@ -563,14 +517,127 @@ namespace SeamCarvingAdvanced
 							yMax--;
 					}
 				}
+			}
 
+			return GetMinIndAndValue(energyDiff, width, height, xDir, out sMin);
+		}
+
+		protected virtual int CalculateEnergyDiffParallel(byte* energy, int* energyDiff, int width, int height, bool xDir, out int sMin)
+		{
+			if (xDir)
+			{
+				int blockSize2 = BlockSize / 2;
+				int blockCountX1 = (width + BlockSize - 1) / BlockSize;
+				int blockCountX2 = blockCountX1 + 1;
+				int blockCountY = (height + blockSize2 - 1) / blockSize2;
+
+				for (int i = 0; i < blockCountY; i++)
+				{
+					int yStart = i * blockSize2;
+					int yStop = Math.Min(yStart + blockSize2, height);
+
+					for (int j1 = 0; j1 < blockCountX1; j1++)
+					{
+						int xStart = j1 * BlockSize;
+						int xStop = xStart + BlockSize;
+
+						for (int y = yStart; y < yStop; y++)
+						{
+							for (int x = xStart; x <= xStop; x++)
+							{
+								if (x < width)
+								{
+									if (y == 0)
+										energyDiff[x] = energy[x];
+									else
+									{
+										int y_x_ind = y * _initWidth + x;
+										int ym1_x_ind = y_x_ind - _initWidth;
+
+										int leftUpperVal = energyDiff[ym1_x_ind - 1];
+										int rightUpperVal = x < width - 1 ? energyDiff[ym1_x_ind + 1] : MaxEnergyDiff;
+										int upperVal = energyDiff[ym1_x_ind];
+
+										energyDiff[y_x_ind] = Min(leftUpperVal, upperVal, rightUpperVal) + energy[y_x_ind];
+									}
+								}
+							}
+							xStart++;
+							xStop--;
+						}
+					}
+
+					yStart = Math.Min(yStart + 1, height);
+					for (int j2 = 0; j2 < blockCountX2; j2++)
+					{
+						int xStart = j2 * BlockSize;
+						int xStop = xStart;
+
+						for (int y = yStart; y < yStop; y++)
+						{
+							for (int x = xStart; x <= xStop; x++)
+							{
+								if (x >= 0 || x < width)
+								{
+									int y_x_ind = y * _initWidth + x;
+									int ym1_x_ind = y_x_ind - _initWidth;
+
+									int leftUpperVal = x > 0 ? energyDiff[ym1_x_ind - 1] : MaxEnergyDiff;
+									int rightUpperVal = x < width - 1 ? energyDiff[ym1_x_ind + 1] : MaxEnergyDiff;
+									int upperVal = energyDiff[ym1_x_ind];
+
+									energyDiff[y_x_ind] = Min(leftUpperVal, upperVal, rightUpperVal) + energy[y_x_ind];
+								}
+							}
+							xStart--;
+							xStop++;
+						}
+					}
+				}
+			}
+
+			return GetMinIndAndValue(energyDiff, width, height, xDir, out sMin);
+		}
+
+		protected int GetMinIndAndValue(int* energyDiff, int width, int height, bool xDir, out int sMin)
+		{
+			int scale;
+			int offset;
+			if (!Parallelization)
+			{
+				scale = _initWidth;
+				offset = 0;
+			}
+			else
+			{
+				scale = _initExtWidth;
+				offset = (BlockSize + Offset) * _initExtWidth + BlockSize + Offset;
+			}
+
+			if (xDir)
+			{
+				int h1 = height - 1;
 				sMin = 0;
-				int sMinValue = energyDiff[sMin * _initWidth + w1];
+				int sMinValue = energyDiff[h1 * scale + sMin + offset];
+				for (int x = 1; x < width; x++)
+					if (energyDiff[h1 * scale + x + offset] < sMinValue)
+					{
+						sMin = x;
+						sMinValue = energyDiff[h1 * scale + sMin + offset];
+					}
+
+				return sMinValue;
+			}
+			else
+			{
+				int w1 = width - 1;
+				sMin = 0;
+				int sMinValue = energyDiff[sMin * scale + w1 + offset];
 				for (int y = 1; y < height; y++)
-					if (energyDiff[y * _initWidth + w1] < sMinValue)
+					if (energyDiff[y * scale + w1 + offset] < sMinValue)
 					{
 						sMin = y;
-						sMinValue = energyDiff[sMin * _initWidth + w1];
+						sMinValue = energyDiff[sMin * scale + w1 + offset];
 					}
 
 				return sMinValue;
@@ -950,11 +1017,8 @@ namespace SeamCarvingAdvanced
 			}
 			else if (EnergyFuncType == EnergyFuncType.Laplacian)
 			{
-				result = Abs(GetGrayscaledAt(grayscaled, width, height, x + 1, y) +
-						 GetGrayscaledAt(grayscaled, width, height, x - 1, y) +
-						 GetGrayscaledAt(grayscaled, width, height, x, y + 1) +
-						 GetGrayscaledAt(grayscaled, width, height, x, y - 1) -
-							4 * *grayscaled);
+				result = Abs(GetGrayscaledAt(grayscaled, width, height, x + 1, y) + GetGrayscaledAt(grayscaled, width, height, x - 1, y) +
+						 GetGrayscaledAt(grayscaled, width, height, x, y + 1) + GetGrayscaledAt(grayscaled, width, height, x, y - 1) - 4 * *grayscaled);
 			}
 
 			return (byte)Limit(result, 0, 255);
@@ -980,6 +1044,16 @@ namespace SeamCarvingAdvanced
 		protected static int Abs(int a)
 		{
 			return a >= 0 ? a : -a;
+		}
+
+		public static int Min(int a, int b, int c)
+		{
+			int result = a;
+			if (b < result)
+				result = b;
+			if (c < result)
+				result = c;
+			return result;
 		}
 
 		#endregion

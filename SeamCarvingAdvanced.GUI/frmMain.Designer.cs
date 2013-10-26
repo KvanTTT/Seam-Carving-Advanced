@@ -60,6 +60,8 @@
 			this.label9 = new System.Windows.Forms.Label();
 			this.openImageDialog = new System.Windows.Forms.OpenFileDialog();
 			this.btnProcess = new System.Windows.Forms.Button();
+			this.label12 = new System.Windows.Forms.Label();
+			this.tbBlockSize = new System.Windows.Forms.TextBox();
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();
@@ -72,6 +74,8 @@
 			// groupBox1
 			// 
 			this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.groupBox1.Controls.Add(this.tbBlockSize);
+			this.groupBox1.Controls.Add(this.label12);
 			this.groupBox1.Controls.Add(this.tbNeighbourCount);
 			this.groupBox1.Controls.Add(this.label7);
 			this.groupBox1.Controls.Add(this.label11);
@@ -94,7 +98,7 @@
 			this.groupBox1.Controls.Add(this.tbWidthRatio);
 			this.groupBox1.Location = new System.Drawing.Point(482, 5);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(294, 245);
+			this.groupBox1.Size = new System.Drawing.Size(294, 269);
 			this.groupBox1.TabIndex = 41;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Settings";
@@ -187,6 +191,7 @@
 			this.cmbSeamCarvingMethod.Name = "cmbSeamCarvingMethod";
 			this.cmbSeamCarvingMethod.Size = new System.Drawing.Size(130, 21);
 			this.cmbSeamCarvingMethod.TabIndex = 53;
+			this.cmbSeamCarvingMethod.SelectedIndexChanged += new System.EventHandler(this.cmbSeamCarvingMethod_SelectedIndexChanged);
 			// 
 			// cbParallel
 			// 
@@ -300,7 +305,7 @@
 			// 
 			this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.label6.AutoSize = true;
-			this.label6.Location = new System.Drawing.Point(497, 288);
+			this.label6.Location = new System.Drawing.Point(497, 323);
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(30, 13);
 			this.label6.TabIndex = 50;
@@ -309,7 +314,7 @@
 			// tbCalculationTime
 			// 
 			this.tbCalculationTime.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.tbCalculationTime.Location = new System.Drawing.Point(625, 285);
+			this.tbCalculationTime.Location = new System.Drawing.Point(625, 320);
 			this.tbCalculationTime.Name = "tbCalculationTime";
 			this.tbCalculationTime.ReadOnly = true;
 			this.tbCalculationTime.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
@@ -415,13 +420,32 @@
 			// btnProcess
 			// 
 			this.btnProcess.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnProcess.Location = new System.Drawing.Point(625, 256);
+			this.btnProcess.Location = new System.Drawing.Point(625, 291);
 			this.btnProcess.Name = "btnProcess";
 			this.btnProcess.Size = new System.Drawing.Size(130, 23);
 			this.btnProcess.TabIndex = 52;
 			this.btnProcess.Text = "Process";
 			this.btnProcess.UseVisualStyleBackColor = true;
 			this.btnProcess.Click += new System.EventHandler(this.btnProcess_Click);
+			// 
+			// label12
+			// 
+			this.label12.AutoSize = true;
+			this.label12.Location = new System.Drawing.Point(15, 233);
+			this.label12.Name = "label12";
+			this.label12.Size = new System.Drawing.Size(57, 13);
+			this.label12.TabIndex = 63;
+			this.label12.Text = "Block Size";
+			// 
+			// tbBlockSize
+			// 
+			this.tbBlockSize.Location = new System.Drawing.Point(143, 230);
+			this.tbBlockSize.Name = "tbBlockSize";
+			this.tbBlockSize.RightToLeft = System.Windows.Forms.RightToLeft.No;
+			this.tbBlockSize.Size = new System.Drawing.Size(63, 20);
+			this.tbBlockSize.TabIndex = 64;
+			this.tbBlockSize.Text = "16";
+			this.tbBlockSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
 			// 
 			// frmMain
 			// 
@@ -486,6 +510,8 @@
 		private System.Windows.Forms.TextBox tbCairAppPath;
 		private System.Windows.Forms.TextBox tbNeighbourCount;
 		private System.Windows.Forms.Label label7;
+		private System.Windows.Forms.TextBox tbBlockSize;
+		private System.Windows.Forms.Label label12;
     }
 }
 

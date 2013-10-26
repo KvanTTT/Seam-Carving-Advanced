@@ -32,6 +32,8 @@ namespace SeamCarvingAdvanced.GUI
 			enumValues = Enum.GetValues(typeof(EnergyFuncType));
 			foreach (var enumValue in enumValues)
 				cmbEnergyFuncType.Items.Add(enumValue.ToString());
+
+			SeamCarverGPU.InitGPU();
 		}
 
 		private void frmMain_Load(object sender, EventArgs e)
@@ -48,6 +50,7 @@ namespace SeamCarvingAdvanced.GUI
 				cbParallel.Checked = Settings.Default.Parallel;
 				tbCairAppPath.Text = Settings.Default.CairAppPath;
 				tbNeighbourCountRatio.Text = Settings.Default.NeighbourCountRatio.ToString(DoubleFormatString);
+				tbBlockSize.Text = Settings.Default.BlockSize.ToString();
 
 				if (!string.IsNullOrEmpty(tbInputImagePath.Text))
 					InputBitmap = new Bitmap(tbInputImagePath.Text);
@@ -73,6 +76,7 @@ namespace SeamCarvingAdvanced.GUI
 			Settings.Default.Parallel = cbParallel.Checked;
 			Settings.Default.CairAppPath = tbCairAppPath.Text;
 			Settings.Default.NeighbourCountRatio = double.Parse(tbNeighbourCountRatio.Text);
+			Settings.Default.BlockSize = int.Parse(tbBlockSize.Text);
 			Settings.Default.Save();
 		}
 
@@ -111,12 +115,16 @@ namespace SeamCarvingAdvanced.GUI
 				case SeamCarvingMethod.Standart:
 					stopwatch.Start();
 					SeamCarverStandart standrtCarver = new SeamCarverStandart(energyFuncType, cbHd.Checked, cbForwardEnergy.Checked, cbParallel.Checked,
-						double.Parse(tbNeighbourCountRatio.Text));
+						double.Parse(tbNeighbourCountRatio.Text), int.Parse(tbBlockSize.Text));
 					resultBitmap = standrtCarver.Generate(InputBitmap, newWidth, newHeight);
 					stopwatch.Stop();
 					break;
 				case SeamCarvingMethod.GPU:
-
+					stopwatch.Start();
+					SeamCarverGPU gpuCarver = new SeamCarverGPU(energyFuncType, cbHd.Checked, cbForwardEnergy.Checked, cbParallel.Checked,
+						int.Parse(tbBlockSize.Text));
+					resultBitmap = gpuCarver.Generate(InputBitmap, newWidth, newHeight);
+					stopwatch.Stop();
 					break;
 			}
 			tbCalculationTime.Text = stopwatch.Elapsed.ToString();
@@ -193,6 +201,11 @@ namespace SeamCarvingAdvanced.GUI
 				tbNeighbourCount.Text = neighbourCount.ToString();
 				tbNeighbourCountRatio.Text = ((double)neighbourCount / InputBitmap.Width).ToString(DoubleFormatString);
 			}
+		}
+
+		private void cmbSeamCarvingMethod_SelectedIndexChanged(object sender, EventArgs e)
+		{
+
 		}
     }
 }
