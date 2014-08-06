@@ -33,7 +33,14 @@ namespace SeamCarvingAdvanced.GUI
 			foreach (var enumValue in enumValues)
 				cmbEnergyFuncType.Items.Add(enumValue.ToString());
 
-			SeamCarverGPU.InitGPU();
+            try
+            {
+                SeamCarverGPU.InitGPU();
+            }
+            catch
+            {
+                MessageBox.Show("Unable to detect cuda gpu.");
+            }
 		}
 
 		private void frmMain_Load(object sender, EventArgs e)
