@@ -26,21 +26,21 @@ namespace SeamCarvingAdvanced.GUI
 
 			InitializeComponent();
 
-			var enumValues = Enum.GetValues(typeof(SeamCarvingMethod));
-			foreach (var enumValue in enumValues)
-				cmbSeamCarvingMethod.Items.Add(enumValue.ToString());
-			enumValues = Enum.GetValues(typeof(EnergyFuncType));
-			foreach (var enumValue in enumValues)
-				cmbEnergyFuncType.Items.Add(enumValue.ToString());
-
+            var seamCarvingMethods = ((SeamCarvingMethod[])Enum.GetValues(typeof(SeamCarvingMethod))).ToList();
             try
             {
                 SeamCarverGPU.InitGPU();
             }
             catch
             {
+                seamCarvingMethods.Remove(SeamCarvingMethod.GPU);
                 MessageBox.Show("Unable to detect cuda gpu.");
-            }
+            }			
+			foreach (var enumValue in seamCarvingMethods)
+				cmbSeamCarvingMethod.Items.Add(enumValue.ToString());
+			var energyFuncTypes = Enum.GetValues(typeof(EnergyFuncType));
+            foreach (var enumValue in energyFuncTypes)
+				cmbEnergyFuncType.Items.Add(enumValue.ToString());            
 		}
 
 		private void frmMain_Load(object sender, EventArgs e)
@@ -61,10 +61,6 @@ namespace SeamCarvingAdvanced.GUI
 
 				if (!string.IsNullOrEmpty(tbInputImagePath.Text))
 					InputBitmap = new Bitmap(tbInputImagePath.Text);
-
-				/*tbWidthRatio_TextChanged(sender, e);
-				tbHeightRatio_TextChanged(sender, e);
-				tbNeighbourCountRatio_TextChanged(sender, e);*/
 			}
 			catch
 			{
