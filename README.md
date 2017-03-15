@@ -1,4 +1,4 @@
-##Seam-Carving-Advanced
+## Seam-Carving-Advanced
 
 Experiments with seam carving (contet-aware resizing), such as Seam Carving on GPU, for video and other.
 
@@ -9,7 +9,7 @@ For performance reason code has been rewritten with **unsafe** parts.
 * **GPU** (exprerimental). Using [Cudafy](https://cudafy.codeplex.com/) for interaction with GPU.
 Actually is not working.
 
-##GUI
+## GUI
 
 Most part of options has been borrowed from [CAIR](https://sites.google.com/site/brainrecall/cair):
 * Energy Type (Prewitt, Sobel, V1, VSquare, Laplacian).
@@ -17,8 +17,8 @@ Most part of options has been borrowed from [CAIR](https://sites.google.com/site
 * HD.
 * Parallelization is also available.
 
-<img src="https://hsto.org/files/022/8d0/1fa/0228d01fa9d24fd3b421092207e2e8b0.png" alt="GUI sample screen"/>
+![GUI Sample Screen](https://hsto.org/files/022/8d0/1fa/0228d01fa9d24fd3b421092207e2e8b0.png)
 
-##Licence
+## Licence
 
 Seam-Carving-Advanced is licensed under the Apache 2.0 License.
