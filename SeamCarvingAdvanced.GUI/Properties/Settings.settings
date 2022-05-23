@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="InputImagePath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">..\..\..\Sample Images\Castle and Man.bmp</Value>
+      <Value Profile="(Default)">..\..\..\..\Sample Images\Castle and Man.bmp</Value>
     </Setting>
     <Setting Name="SeamCarvingMethod" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
@@ -27,7 +27,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="CairAppPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">..\..\..\Cair\CAIR.exe</Value>
+      <Value Profile="(Default)">..\..\..\..\Cair\CAIR.exe</Value>
     </Setting>
     <Setting Name="NeighbourCountRatio" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
