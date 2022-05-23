@@ -2,12 +2,8 @@
 using Cudafy.Host;
 using Cudafy.Translator;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SeamCarvingAdvanced
 {
@@ -124,7 +120,7 @@ namespace SeamCarvingAdvanced
 				int blockCountX1 = (width + BlockSize - 1) / BlockSize;
 				int blockCountX2 = width / BlockSize == blockSize2 ? blockCountX1 : blockCountX1 + 1;
 				int blockCountY = (height + blockSize2 - 1) / blockSize2;
-				
+
 				int gpuBlockCount = 256;
 				int gpuThreadCount = 1;
 

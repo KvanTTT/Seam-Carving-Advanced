@@ -1,15 +1,10 @@
 ﻿using SeamCarvingAdvanced.GUI.Properties;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SeamCarvingAdvanced.GUI
@@ -35,12 +30,12 @@ namespace SeamCarvingAdvanced.GUI
             {
                 seamCarvingMethods.Remove(SeamCarvingMethod.GPU);
                 MessageBox.Show("Unable to detect cuda gpu.");
-            }			
+            }
 			foreach (var enumValue in seamCarvingMethods)
 				cmbSeamCarvingMethod.Items.Add(enumValue.ToString());
 			var energyFuncTypes = Enum.GetValues(typeof(EnergyFuncType));
             foreach (var enumValue in energyFuncTypes)
-				cmbEnergyFuncType.Items.Add(enumValue.ToString());            
+				cmbEnergyFuncType.Items.Add(enumValue.ToString());
 		}
 
 		private void frmMain_Load(object sender, EventArgs e)
